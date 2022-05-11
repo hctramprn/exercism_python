@@ -1,6 +1,5 @@
 def run():
-    print(id(254263))
-
+    pass
 
 
 if __name__ == '__main__':
