@@ -1,5 +1,9 @@
+import enum
+
+
 def run():
-    pass
+    hand = [3, 6, 9, 12, 150]
+    print(len(list(enumerate(hand))))
 
 
 if __name__ == '__main__':
