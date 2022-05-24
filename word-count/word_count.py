@@ -1,19 +1,7 @@
-punctuation = '!"#$%&()*+,-./:;<=>?@[\]^_`{|}~'
+import re
 
 
 def count_words(sentence):
-    string = ''
-    for word in sentence.lower():
-        for char in word:
-            if char not in punctuation:
-                if char != ' ':
-                    string += char
-                else:
-                    string += ' '
-            else:
-                string += ' '
-
-    list_of_words = [word.strip("'").strip('"') for word in string.split()]
-    words_count = {word: list_of_words.count(word) for word in list_of_words}
-    words_count.pop('', None)
-    return words_count
+    list_of_words = re.findall(r'[a-z0-9]+(?:\'[a-z]+)?', sentence.lower(), re.IGNORECASE)
+    word_count = {word: list_of_words.count(word) for word in list_of_words}
+    return word_count
