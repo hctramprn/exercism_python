@@ -4,7 +4,6 @@ import string
 VOWELS = set('aeiouy')
 CONSONANTS = set(string.ascii_lowercase).difference(VOWELS)
 
-
 def translate(text):
     """Functions that translate a given text to 'Pig Latin'.
 
