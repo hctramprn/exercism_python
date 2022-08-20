@@ -13,8 +13,8 @@ class Allergies:
     def score_adjust(self, score):
         score = score
         if score > 256:
-            pwr = 0
-            while score - (2**pwr) > 255:
+            pwr = 8
+            while score - (2**pwr) > 256:
                 pwr += 1
             return score - (2**pwr)
         return score
