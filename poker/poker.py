@@ -1,143 +1,84 @@
-ranks = {'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
-         '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13}
+from collections import Counter
+card_nums = {'A': 1, 'J': 11, 'Q': 12, 'K': 13}
+HIGH_CARD = 0
+ONE_PAIR = 1
+TWO_PAIR = 2
+THREE_OF_A_KIND = 3
+STRAIGHT = 4
+FLUSH = 5
+FULL_HOUSE = 6
+FOUR_OF_A_KIND = 7
+STRAIGHT_FLUSH = 8
 
 
-hands_rank = []
-suits = []
-pips = []
-high_card_rank = []
+def check_straight(nums):
+    if len(set(nums)) == 5 and nums[-1]-nums[0] == 4:
+        return nums[-1]
+    elif set(nums) == {10, 11, 12, 13, 1}:
+        return 14
+    return None
+
+
+def check_hand(hand):
+    cards = hand.split()
+    nums = []
+    suit_set = set()
+    for c in cards:
+        n, s = c[:-1], c[-1]
+        suit_set.add(s)
+        nums.append(card_nums.get(n) if n in card_nums else int(n))
+    nums.sort()
+    is_straight = check_straight(nums)
+    nums = sorted([14 if n == 1 else n for n in nums])
+    nums_counter = Counter(nums)
+    if is_straight is not None and len(suit_set) == 1:
+        return (STRAIGHT_FLUSH, is_straight)
+    if len(set(nums)) == 2:
+        n1, n2 = nums_counter.keys()
+        if nums_counter[n1] < nums_counter[n2]:
+            n1, n2 = n2, n1
+        if max(nums_counter.values()) == 4:
+            return (FOUR_OF_A_KIND, (n1, n2))
+        else:
+            return (FULL_HOUSE, (n1, n2))
+    if len(suit_set) == 1:
+        return (FLUSH, tuple(nums[::-1]))
+    if is_straight is not None:
+        return (STRAIGHT, is_straight)
+    if max(nums_counter.values()) == 3:
+        t = []
+        for n in nums:
+            if nums_counter[n] == 3:
+                n1 = n
+            else:
+                t.append(n)
+        return (THREE_OF_A_KIND, tuple([n1]+t))
+    if max(nums_counter.values()) == 2:
+        if len(set(nums)) == 3:
+            t = set()
+            for n in nums:
+                if nums_counter[n] == 2:
+                    t.add(n)
+                else:
+                    n3 = n
+            return (TWO_PAIR, tuple(sorted(t, reverse=True)+[n3]))
+        else:
+            t = []
+            for n in nums:
+                if nums_counter[n] == 2:
+                    n1 = n
+                else:
+                    t.append(n)
+            return (ONE_PAIR, tuple([n1]+sorted(t, reverse=True)))
+    return (HIGH_CARD, tuple(sorted(nums, reverse=True)))
+
 
 def best_hands(hands):
-    hands_norm = [h.split() for h in hands]
-    # get the suits and pips of each hand
-    # loops through the sublists
-    for hand in hands_norm:
-        temp_list_suits = []
-        temp_list_pips = []
-        # get the suit and pip of each card in the sublist
-        for s in hand:
-            temp_list_suits.append(s[-1])
-            temp_list_pips.append(ranks[s[:-1]])
-        # appends each sublist of suits and pips to a general list
-        suits.append(temp_list_suits)
-        pips.append(temp_list_pips)
-
-    # evaluates each hand and assigns them a rank
-    for i in range(len(hands_norm)):
-        high_card_rank.append(high_card(pips[i]))
-        if straight_flush(suits[i], pips[i]):
-            hands_rank.append(2)
-            continue
-        if four_of_a_kind(pips[i]):
-            hands_rank.append(3)
-            continue
-        if full_house(pips[i]):
-            hands_rank.append(4)
-            continue
-        if flush(suits[i]):
-            hands_rank.append(5)
-            continue
-        if straight(pips[i]):
-            hands_rank.append(6)
-            continue
-        if three_of_a_kind(pips[i]):
-            hands_rank.append(7)
-            continue
-        if two_pair(pips[i]):
-            hands_rank.append(8)
-            continue
-        if one_pair(pips[i]):
-            hands_rank.append(9)
-            continue
-        else:
-            hands_rank.append(10)
-
-    possible_winners = []
-    highest_rank = 0
-    for i in range(len(hands)):
-        if hands_rank[i] == min(hands_rank):
-            possible_winners.append([hands[i], high_card_rank[i]])
-            if high_card_rank[i] > highest_rank:
-                highest_rank = high_card_rank[i]
-
-    winners = [hand[0] for hand in possible_winners if hand[1] == highest_rank]
-    # print(hands_rank, high_card_rank, winners)
-    return winners
-
-
-
-# finds if the hand has only one type of suit and the pips are in a range of 5
-def straight_flush(suits, pips):
-    suit_set = set(suits)
-    pip_set = set(pips)
-    if len(suit_set) == 1 and pip_set.issubset(set(range(min(pip_set), min(pip_set) + 5))):
-        return True
-
-
-# returns True if the hand has two types of suits and a pip is repeated 4 times
-def four_of_a_kind(pips):
-    pip_set = set(pips)
-    pip_count = []
-    for num in pip_set:
-        pip_count.append(pips.count(num))
-    if len(pip_set) == 2 and 4 in pip_count:
-        return True
-
-
-# returns True if the hand has two types of suits and a pip is repeated 3 times
-def full_house(pips):
-    pip_set = set(pips)
-    pip_count = []
-    for num in pip_set:
-        pip_count.append(pips.count(num))
-    if len(pip_set) == 2 and 3 in pip_count:
-        return True
-
-
-# returns True if the hand has only one type of suit
-def flush(suits):
-    suit_set = set(suits)
-    if len(suit_set) == 1:
-        return True
-
-
-# returns True is the hand's pips are in a range of 5
-def straight(pips):
-    pip_set = set(pips)
-    if len(pip_set) == 5 and pip_set.issubset(set(range(min(pip_set), min(pip_set) + 5))):
-        return True
-
-
-# returns True if a pip is repeated three times
-def three_of_a_kind(pips):
-    pip_set = set(pips)
-    pip_count = []
-    for num in pip_set:
-        pip_count.append(pips.count(num))
-    if len(pip_set) == 3 and 3 in pip_count:
-        return True
-
-
-# returns True if a pip is repeated two times
-def two_pair(pips):
-    pip_set = set(pips)
-    pip_count = []
-    for num in pip_set:
-        pip_count.append(pips.count(num))
-    if len(pip_set) == 3 and 2 in pip_count:
-        return True
-
-
-# returns True if a pip is repeated two times
-def one_pair(pips):
-    pip_set = set(pips)
-    pip_count = []
-    for num in pip_set:
-        pip_count.append(pips.count(num))
-    if len(pip_set) == 4 and 2 in pip_count:
-        return True
-
-
-# returns True if a pip is repeated two times
-def high_card(pips):
-    return max(pips)
+    r = [[], (-1, tuple())]
+    for hand in hands:
+        p, t = check_hand(hand)
+        if p > r[1][0] or (p == r[1][0] and t > r[1][1]):
+            r = [[hand], (p, t)]
+        elif p == r[1][0] and t == r[1][1]:
+            r[0].append(hand)
+    return r[0]
